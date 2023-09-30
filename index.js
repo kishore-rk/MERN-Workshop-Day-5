@@ -28,14 +28,14 @@ app.get('/posts', async (req,res) => {
 // get post by id
 app.get('/posts/:id', async (req,res) => {
     
-        const id = req.params.id;
-        if(!mongoose.Types.ObjectId.isValid(id)){
-           return res.status(400).send(`Post not found at the id ${id}`);
-
-        }
-        const rk = await Post.findById(id)
-        
-        res.send(rk)
+    const id = req.params.id;
+    //handling the exception - if id not found
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(400).send(`Post not found at the id ${id}`);      
+    }
+    // if id present in the database
+    const rk = await Post.findById(id);          
+    res.send(rk)
 })
 
 // post a insta_post
@@ -53,71 +53,88 @@ app.post('/posts', async(req,res) =>{
 app.put('/posts/:id', async(req,res) =>{
     const id = req.params.id;
     const caption = req.body.caption;
-    const post = await Post.findById(id)
-    if(post){
-        post.caption =caption;
-        const savepost = await post.save();
-        res.send(savepost)
-    }else{
-        res.status(400).send("post not found")
+    
+    //handling the exception - if id not found
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(400).send(`Post not found at the id ${id}`);      
     }
+
+    // if id present in the database
+    const post = await Post.findById(id)
+    post.caption =caption;
+    const savepost = await post.save();
+    res.send(savepost)
+    
 
 });
 
 //deleting a post
 app.delete('/posts/:id', async(req,res)=>{
     const id = req.params.id;
-    const post = await Post.findByIdAndDelete(id);
-    if(post)
-        res.send("Post deleted")
-    else
+    //handling the exception - if id not found
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(400).send(`Post not found at the id ${id}`);      
+    }
 
-        res.send("post not found")
+    // if id present in the database
+    const post = await Post.findByIdAndDelete(id);
+    res.send("Post deleted")
+
 })
 
 // liking a post
 app.put('/posts/:id/like', async(req,res)=>{
     const id = req.params.id;
-    
-    const post = await Post.findById(id)
-    
-    if(post){
-        post.likes = post.likes+ 1;
-        const savepost = await post.save();
-        res.send(savepost)
-    }else{
-        res.status(400).send("post not found")
+    //handling the exception - if id not found
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(400).send(`Post not found at the id ${id}`);      
     }
+
+    // if id present in the database
+    const post = await Post.findById(id)
+
+    post.likes = post.likes+ 1;
+    const savepost = await post.save();
+    res.send(savepost)
+
 })
 //unliking a post
 app.put('/posts/:id/unlike', async(req,res)=>{
     const id = req.params.id;
-    
-    const post = await Post.findById(id)
-    if(post){
-        if(post.likes > 0){
-            post.likes -= 1;
-            const savepost = await post.save();
-            res.send(savepost)
-        }else{
-            res.send(`like count is zero by default`);
-        }
-    }else{
-        res.status(400).send("post not found")
+    //handling the exception - if id not found
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(400).send(`Post not found at the id ${id}`);      
     }
+
+    // if id present in the database
+    const post = await Post.findById(id)
+
+    if(post.likes > 0){
+        post.likes -= 1;
+        const savepost = await post.save();
+        res.send(savepost)
+    }else{
+        res.send(`like count is zero by default`);
+    }
+
 })
 // commenting on a post
 app.put('/posts/:id/comments', async(req,res)=>{
     const id = req.params.id;
-    const comment = req.body.comments;
-    const post = await Post.findById(id)
-    if(post){
-        post.comments.push(comment);
-        const savepost = await post.save();
-        res.send(savepost)
-    }else{
-        res.status(400).send("post not found")
+    //handling the exception - if id not found
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(400).send(`Post not found at the id ${id}`);      
     }
+
+    // if id present in the database
+    const comment = req.body.comments;
+
+    const post = await Post.findById(id)
+
+    post.comments.push(comment);
+    const savepost = await post.save();
+    res.send(savepost)
+
 })
 const port = 3000;
 app.listen(port, () => {
