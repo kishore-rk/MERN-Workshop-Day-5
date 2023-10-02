@@ -1,7 +1,11 @@
 const express = require('express')
 const app = express()
 app.use(express.json())
+
+require('dotenv').config();
 const mongoose = require('mongoose')
+
+const port = 3000;
 //Schema 
 const postSchema = new mongoose.Schema({
     image : String,
@@ -119,7 +123,7 @@ app.put('/posts/:id/unlike', async(req,res)=>{
 
 })
 // commenting on a post
-app.put('/posts/:id/comments', async(req,res)=>{
+app.put('/posts/:id/comment', async(req,res)=>{
     const id = req.params.id;
     //handling the exception - if id not found
     if(!mongoose.Types.ObjectId.isValid(id)){
@@ -136,23 +140,65 @@ app.put('/posts/:id/comments', async(req,res)=>{
     res.send(savepost)
 
 })
-const port = 3000;
+//route for getting all comments on a post
+app.get('/posts/:id/comments', async (req,res) => {
+    
+    const id = req.params.id;
+    //handling the exception - if id not found
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(400).send(`Post not found at the id ${id}`);      
+    }
+    // if id present in the database
+    const rk = await Post.findById(id);  
+    const comment_id = rk.comments        
+    res.send(comment_id)
+})
+//route for getting all likes on a post
+app.get('/posts/:id/likes', async (req,res) => {
+    
+    const id = req.params.id;
+    //handling the exception - if id not found
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(400).send(`Post not found at the id ${id}`);      
+    }
+    // if id present in the database
+    const rk = await Post.findById(id);      
+    const no_of_likes = Number(rk.likes);    
+    res.send({no_of_likes});
+})
+
+// if above specified route is not called
+app.use((req,res)=>{
+    res.send(`invalid route. please enter a valid route\n` + instruct)
+})
+
+//instructions if any wrong route entered
+const instruct = `
+    GET:
+    1. to GET all posts : http://localhost:${port}/posts
+    2. to GET post with id : http://localhost:${port}/posts/:id
+    3. to GET comments of a post with id : http://localhost:${port}/posts/:id/comments
+    4. to GET likes of a post with id : http://localhost:${port}/posts/:id/likes
+
+    POST:
+    1. to create a post : http://localhost:${port}/posts
+
+    DELETE:
+    1. to DELETE a post with id : http://localhost:${port}/posts/:id
+
+    PUT/UPDATE:
+    1. to UPDATE the caption with id : http://localhost:${port}/posts/:id
+    2. to like a post :  http://localhost:${port}/posts/:id/like
+    3. to unlike a post : http://localhost:${port}/posts/:id/unlike
+    4. to commenting a post : http://localhost:${port}/posts/:id/comment
+
+ `
+
+//establishment of connection
+
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
-    mongoose.connect("mongodb+srv://kishorev2425:HelloWorld321@cluster0.l5urqqz.mongodb.net/").then(() => {
+    mongoose.connect(process.env.MONGODB_URI).then(() => {
         console.log("Connected to the database!");
     })
 })
-
-/* check list
-1) create a route for getting all posts - completed
-2) create a route for getting a single post - completed
-3) create a route for creating a post - completed
-4) create a route for updating a post - completed
-5) create a route for deleting a post - completed
-6) create a route for liking a post - completed
-7) create a route for unliking a post - completed
-8) create a route for commenting on a post - completed
-9) create a route for getting all comments on a post
-10) create a route for getting all likes on a post
-*/
